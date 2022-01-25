@@ -2,6 +2,7 @@ import React,{useState,useEffect} from 'react';
 import './App.css';
 import {commerce} from './lib/Commerce';
 import { Navbar, Products,Cart } from './components';
+import {BrowserRouter as Router, Routes,Route} from 'react-router-dom'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -20,10 +21,24 @@ function App() {
   }
 
   const handleCartClick = async (productId,productQuantity) => {
-    const item = await commerce.cart.add(productId, productQuantity)
-    
-    setCart(item.cart);
+    const {cart} = await commerce.cart.add(productId, productQuantity)
+    setCart(cart);
   }
+
+  const handleUpdateCartQty = async (productId,productQuantity) => {
+    const {cart} = await commerce.cart.update(productId,{productQuantity});
+    setCart(cart)
+    }
+
+const handleRemoveFromCart = async (productId) => {
+  const {cart} = await commerce.cart.remove(productId);
+  setCart(cart);
+}
+  
+  const handleEmptyCart = async () => {
+    const {cart} = await commerce.cart.empty();
+    setCart(cart);
+}
   useEffect(() => {
     fetchProducts();
     fetchCart();
@@ -31,11 +46,19 @@ function App() {
 
   console.log(cart);
   return (
-    <div>
-      <Navbar totalItems={cart.total_items}/>
-      {/* <Products products={products} onHandleCartClick={handleCartClick} /> */}
-      <Cart cart={cart}/>
-    </div>
+    <Router>
+      <div>
+        <Navbar totalItems={cart.total_items} />
+        <Routes>
+          <Route path='/' element={<Products products={products} onHandleCartClick={handleCartClick} />}/>
+          <Route exact path='/cart' element={<Cart cart={cart} 
+            handleUpdateCartQty={handleUpdateCartQty}
+            handleRemoveFromCart={handleRemoveFromCart}
+            handleEmptyCart={handleEmptyCart}
+          />}/>
+        </Routes>
+      </div>
+      </Router>
   );
 }
 
